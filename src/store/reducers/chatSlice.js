@@ -9,6 +9,7 @@ const initialState = {
   isDownloading: false,
   fileUploadProgress: 0,
   fileDownloadProgress: 0,
+  channels: [],
 };
 
 const chatSlice = createSlice({
@@ -45,6 +46,44 @@ const chatSlice = createSlice({
     setFileDownloadProgress: (state, action) => {
       state.fileDownloadProgress = action.payload;
     },
+    setChannels: (state, action) => {
+      state.channels = action.payload;
+    },
+    addChannel: (state, action) => {
+      state.channels = [...state.channels, action.payload];
+    },
+    addChannelsInChannelList: (state, action) => {
+      const message = action.payload;
+      const data = state.channels.find(
+        (channel) => channel._id === message.channelId
+      );
+      const index = state.channels.findIndex(
+        (channel) => channel._id === message.channelId
+      );
+      if (index !== -1 && index !== undefined) {
+        state.channels.splice(index, 1);
+        state.channels.unshift(data);
+      }
+    },
+    addContactsInDmContacts: (state, action) => {
+      const { message, userInfo } = action.payload;
+      const fromId =
+        message.sender._id === userInfo.id
+          ? message.recipient._id
+          : message.sender._id;
+      const fromData =
+        message.sender._id === userInfo.id ? message.recipient : message.sender;
+      const dmContacts = [...state.directMessagesContacts];
+      const data = dmContacts.find((contact) => contact._id === fromId);
+      const index = dmContacts.findIndex((contact) => contact._id === fromId);
+      if (index !== -1 && index !== undefined) {
+        dmContacts.splice(index, 1);
+        dmContacts.unshift(data);
+      } else {
+        dmContacts.unshift(fromData);
+      }
+      state.directMessagesContacts = dmContacts;
+    },
   },
 });
 
@@ -58,5 +97,9 @@ export const {
   setIsDownloading,
   setFileUploadProgress,
   setFileDownloadProgress,
+  setChannels,
+  addChannel,
+  addChannelsInChannelList,
+  addContactsInDmContacts,
 } = chatSlice.actions;
 export default chatSlice.reducer;

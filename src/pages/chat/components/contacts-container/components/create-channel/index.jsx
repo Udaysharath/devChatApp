@@ -14,23 +14,12 @@ import {
 import React, { useEffect, useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import { Input } from "@/components/ui/input";
-import Lottie from "react-lottie";
-import { animationDefaultOptions } from "@/lib/utils";
 import { apiClient } from "@/lib/api-client";
-import {
-  GET_ALL_CONTACTS,
-  HOST,
-  SEARCH_CONTACTS_ROUTE,
-} from "@/utils/constants";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { CREATE_CHANNEL_ROUTE, GET_ALL_CONTACTS } from "@/utils/constants";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  setSelectedChatData,
-  setSelectedChatType,
-} from "@/store/reducers/chatSlice";
 import { Button } from "@/components/ui/button";
 import MultipleSelector from "@/components/ui/multipleselect";
+import { addChannel, setChannels } from "@/store/reducers/chatSlice";
 
 const CreateChannel = () => {
   const userInfo = useSelector((state) => state.userSlice.userInfo ?? {});
@@ -42,8 +31,6 @@ const CreateChannel = () => {
   );
   const dispatch = useDispatch();
   const [newChannelModal, setNewChannelModal] = useState(false);
-  const [searchedContacts, setSearchedContacts] = useState([]);
-  const [selectedColor, setSelectedColor] = useState("#a223a0");
   const [allContacts, setAllContacts] = useState([]);
   const [selectedContacts, setSelectedContacts] = useState([]);
   const [channelName, setChannelName] = useState("");
@@ -56,7 +43,27 @@ const CreateChannel = () => {
     setAllContacts(response.data.contacts);
   };
 
-  const createChannel = async () => {};
+  const handleCreateChannel = async () => {
+    try {
+      if (channelName.length > 0 && selectedContacts.length > 0) {
+        const response = await apiClient.post(
+          CREATE_CHANNEL_ROUTE,
+          {
+            name: channelName,
+            members: selectedContacts.map((contact) => contact.value),
+          },
+          { withCredentials: true }
+        );
+        if (response && response.status === 200) {
+          // console.log("response.data.channel", response.data.channel);
+          setChannelName("");
+          setSelectedContacts([]);
+          setNewChannelModal(false);
+          dispatch(addChannel(response.data.channel));
+        }
+      }
+    } catch (error) {}
+  };
   useEffect(() => {
     getAllContacts();
   }, []);
@@ -100,8 +107,8 @@ const CreateChannel = () => {
               className=" rounded-lg bg-[#2c2e3b] border-none py-2 text-white"
               defaultOptions={allContacts}
               placeholder="Search contacts"
-              value={searchedContacts}
-              onChange={setSearchedContacts}
+              value={selectedContacts}
+              onChange={setSelectedContacts}
               emptyIndicator={
                 <p className="text-lg text-center leading-10 text-gray-600">
                   No results found.
@@ -112,7 +119,12 @@ const CreateChannel = () => {
           <div>
             <Button
               className="w-full bg-purple-500 hover:bg-purple-900 transition-all duration-300"
-              onClick={createChannel}
+              onClick={handleCreateChannel}
+              // disable={
+              //   channelName.length > 0 && selectedContacts.length > 0
+              //     ? false
+              //     : true
+              // }
             >
               Create Channel
             </Button>

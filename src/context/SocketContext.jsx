@@ -1,4 +1,9 @@
-import { addChatMessage, setSelectedChatMessages } from "@/store/reducers/chatSlice";
+import {
+  addChannelsInChannelList,
+  addChatMessage,
+  addContactsInDmContacts,
+  setSelectedChatMessages,
+} from "@/store/reducers/chatSlice";
 import { HOST } from "@/utils/constants";
 import { createContext, useContext, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,23 +40,34 @@ export const SocketProvider = ({ children }) => {
       });
 
       const handleReceiveMessage = async (message) => {
+        // console.log("message", message);
         if (message) {
           dispatch(
             addChatMessage({
               ...message,
-              recipient:
-                selectedChatType === "channel"
-                  ? message.recipient
-                  : message.recipient._id,
-              sender:
-                selectedChatType === "channel"
-                  ? message.sender
-                  : message.sender._id,
+              recipient: message.recipient._id,
+              sender: message.sender._id,
             })
           );
+          dispatch(addContactsInDmContacts({ message, userInfo }));
         }
       };
+
+      const handleReceiveChannelMessage = (message) => {
+        if (message) {
+          dispatch(
+            addChatMessage({
+              ...message,
+              recipient: message.recipient,
+              sender: message.sender,
+            })
+          );
+          dispatch(addChannelsInChannelList(message));
+        }
+      };
+
       socket.current.on("receiveMessage", handleReceiveMessage);
+      socket.current.on("receive-channel-message", handleReceiveChannelMessage);
       return () => {
         socket.current.disconnect();
       };

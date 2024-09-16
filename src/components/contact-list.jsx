@@ -24,6 +24,7 @@ const ContactList = ({ contacts, isChannel = false }) => {
   const handleClickContact = (contact) => {
     if (isChannel) {
       dispatch(setSelectedChatType("channel"));
+      dispatch(setSelectedChatData(contact));
     } else {
       dispatch(setSelectedChatType("contact"));
       dispatch(setSelectedChatData(contact));
@@ -76,7 +77,7 @@ const ContactList = ({ contacts, isChannel = false }) => {
               </Avatar>
             )}
             {isChannel && (
-              <div className="bg-[#ffffff22] h-10 w-10 flex justify-center items-center rounded-full"></div>
+              <div className="bg-[#ffffff22] h-10 w-10 flex justify-center items-center rounded-full">#</div>
             )}
             {isChannel ? (
               <span>{contact.name}</span>
