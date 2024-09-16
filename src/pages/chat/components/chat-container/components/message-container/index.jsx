@@ -190,6 +190,7 @@ const MessageContainer = () => {
       </div>
     );
   };
+  
   const renderChannelMessages = (message) => {
     return (
       <div
