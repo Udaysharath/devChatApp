@@ -30,7 +30,7 @@ const MessageContainer = () => {
   const selectedChatMessages = useSelector(
     (state) => state.chatSlice.selectedChatMessages ?? []
   );
-  // console.log('selectedChatData', selectedChatMessages)
+  console.log("selectedChatData", selectedChatData);
   const [showImage, setShowImage] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
   const [selectedColor, setSelectedColor] = useState("#a223a0");
@@ -127,71 +127,89 @@ const MessageContainer = () => {
     );
   };
   const renderDMMessages = (message) => {
+    // Check if the message is between the current user and the selected chat
+    const isMessageRelevant =
+      (message.sender === userInfo.id &&
+        message.recipient === selectedChatData._id) ||
+      (message.sender === selectedChatData._id &&
+        message.recipient === userInfo.id);
+
+    // Only render the message if it's relevant to the selected chat
+    if (!isMessageRelevant) return null;
     return (
-      <div
-        className={`${
-          message.sender === selectedChatData._id ? "text-left" : "text-right"
-        }`}
-      >
-        {message.messageType === "text" && (
-          <div
-            className={`${
-              message.sender !== selectedChatData._id
-                ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50"
-                : "bg-[#2a2b33]/5 text-[#fff]/80 border-[#fff]/20"
-            } border inline-block p-4 rounded my-1 max-w-[50%] break-words`}
-          >
-            {message.content}
-          </div>
-        )}
-        {message.messageType === "file" && (
-          <div
-            className={`${
-              message.sender !== selectedChatData._id
-                ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50"
-                : "bg-[#2a2b33]/5 text-[#fff]/80 border-[#fff]/20"
-            } border inline-block p-4 rounded my-1 max-w-[50%] break-words`}
-          >
-            {checkImage(message.fileUrl) ? (
-              <div
-                className=" cursor-pointer"
-                onClick={() => {
-                  setShowImage(true);
-                  setImageUrl(message.fileUrl);
-                }}
-              >
-                <img
-                  src={`${HOST}/${message.fileUrl}`}
-                  height={300}
-                  width={300}
-                />
-              </div>
-            ) : (
-              <div className="flex justify-center items-center gap-5">
-                <span className="text-white/8 text-3xl bg-black/20 rounded-full p-3">
-                  <MdFolderZip />
-                </span>
-                <span>{message.fileUrl.split("/").pop()}</span>
-                <span
-                  className="bg-black/20 p-3 text-2xl rounded-full hover:bg-black/50 cursor-pointer transition-all duration-300"
+      <>
+        <div
+          className={`${
+            message.sender === selectedChatData._id ? "text-left" : "text-right"
+          }`}
+        >
+          {message.messageType === "text" && (
+            <div
+              className={`${
+                message.sender !== selectedChatData._id
+                  ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50"
+                  : "bg-[#2a2b33]/5 text-[#fff]/80 border-[#fff]/20"
+              } border inline-block p-4 rounded my-1 max-w-[50%] break-words`}
+            >
+              {message.content}
+            </div>
+          )}
+          {message.messageType === "file" && (
+            <div
+              className={`${
+                message.sender !== selectedChatData._id
+                  ? "bg-[#8417ff]/5 text-[#8417ff]/90 border-[#8417ff]/50"
+                  : "bg-[#2a2b33]/5 text-[#fff]/80 border-[#fff]/20"
+              } border inline-block p-4 rounded my-1 max-w-[50%] break-words`}
+            >
+              {checkImage(message.fileUrl) ? (
+                <div
+                  className=" cursor-pointer"
                   onClick={() => {
-                    downloadFile(message.fileUrl);
+                    setShowImage(true);
+                    setImageUrl(message.fileUrl);
                   }}
                 >
-                  <IoMdArrowRoundDown />
-                </span>
-              </div>
-            )}
+                  <img
+                    src={`${HOST}/${message.fileUrl}`}
+                    height={300}
+                    width={300}
+                  />
+                </div>
+              ) : (
+                <div className="flex justify-center items-center gap-5">
+                  <span className="text-white/8 text-3xl bg-black/20 rounded-full p-3">
+                    <MdFolderZip />
+                  </span>
+                  <span>{message.fileUrl.split("/").pop()}</span>
+                  <span
+                    className="bg-black/20 p-3 text-2xl rounded-full hover:bg-black/50 cursor-pointer transition-all duration-300"
+                    onClick={() => {
+                      downloadFile(message.fileUrl);
+                    }}
+                  >
+                    <IoMdArrowRoundDown />
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+          <div className="text-xs text-gray-600">
+            {moment(message.timeStamp).format("LT")}
           </div>
-        )}
-        <div className="text-xs text-gray-600">
-          {moment(message.timeStamp).format("LT")}
         </div>
-      </div>
+      </>
     );
   };
   
   const renderChannelMessages = (message) => {
+    // Check if the message sender is either the current user or an allowed member (admin or member)
+    const isMessageFromAllowedUser =
+      message.sender._id === selectedChatData.admin ||
+      selectedChatData.members.includes(message.sender._id);
+
+    // Only render the message if the sender or recipient matches the current user or they are admin/member
+    if (!isMessageFromAllowedUser) return null;
     return (
       <div
         className={`mt-5 ${
