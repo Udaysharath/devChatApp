@@ -30,7 +30,7 @@ const MessageContainer = () => {
   const selectedChatMessages = useSelector(
     (state) => state.chatSlice.selectedChatMessages ?? []
   );
-  console.log("selectedChatData", selectedChatData);
+  // console.log("selectedChatData", selectedChatData);
   const [showImage, setShowImage] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
   const [selectedColor, setSelectedColor] = useState("#a223a0");
